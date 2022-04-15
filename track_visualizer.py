@@ -1,4 +1,4 @@
-﻿import matplotlib
+import matplotlib
 matplotlib.use('qt5agg')
 
 import json
@@ -14,14 +14,14 @@ from matplotlib import animation
 from matplotlib.widgets import Button, TextBox
 
 # put the id of the vehicle here
-required_id1 = 72
-#required_id2 = 73
+required_id = 72
+required_id2 = 73
 
 # color options just copy any option
 # "lightblue", "purple""orange", "red", "yellow", "green" 
 # color_others=  "yellow"
-color_selected_id1 = "red"
-#color_selected_id2 = "green"
+color_selected_id = "red"
+color_selected_id2 = "green"
 
 class TrackVisualizer(object):
     def __init__(self, config, tracks, tracks_meta, recording_meta):
@@ -232,8 +232,22 @@ class TrackVisualizer(object):
 
 
             if self.config["show_bounding_box"] and bounding_box is not None:
-                if (track_id==required_id1):
+                if (track_id==required_id):
                     bbox = plt.Polygon(bounding_box, True, facecolor=color_selected_id, **self.bbox_style)
+                else:
+                    bbox = plt.Polygon(bounding_box, True, facecolor=color, **self.bbox_style)
+                bbox.set_animated(animate)
+
+                # Make bbox clickable to open track info window
+                bbox.set_picker(True)
+                bbox.track_id = track["trackId"]
+
+                self.ax.add_patch(bbox)
+                plot_handles.append(bbox)
+                
+            if self.config["show_bounding_box"] and bounding_box is not None:
+                if (track_id==required_id2):
+                    bbox = plt.Polygon(bounding_box, True, facecolor=color_selected_id2, **self.bbox_style)
                 else:
                     bbox = plt.Polygon(bounding_box, True, facecolor=color, **self.bbox_style)
                 bbox.set_animated(animate)
@@ -247,7 +261,7 @@ class TrackVisualizer(object):
 
             # cccccccccccccccccccc
             '''
-            if (track_id==required_id1):
+            if (track_id==required_id):
                 color = "red"
              
                    
@@ -310,11 +324,34 @@ class TrackVisualizer(object):
                 if center_points.shape[0] > 0:
 
                     #### ccccccccccccc
-                    if (track_id==required_id1   ):
+                    if (track_id==required_id   ):
 
                         print("The selected vehicle  is moving")
                     
-                        plotted_past_line = plt.Polygon(center_points[0:current_index + 1:2], closed=False, color=color_selected_id1 ,
+                        plotted_past_line = plt.Polygon(center_points[0:current_index + 1:2], closed=False, color=color_selected_id ,
+                                                    fill=False, **self.trajectory_style)
+                   
+
+                    #else :
+                     #   plotted_past_line = plt.Polygon(center_points[0:current_index + 1:2], closed=False, color=color_others ,
+                      #      fill=False, **self.trajectory_style)
+
+                        plotted_past_line.set_animated(animate)
+                        self.ax.add_patch(plotted_past_line)
+                        plot_handles.append(plotted_past_line)
+                        if self.config["show_future_trajectory"]:
+                            # Check track direction
+                            plotted_centroids_future = plt.Polygon(center_points[current_index::2], closed=False,
+                                                                fill=False, **self.future_trajectory_style)
+                            plotted_centroids_future.set_animated(animate)
+                            self.ax.add_patch(plotted_centroids_future)
+                            plot_handles.append(plotted_centroids_future)
+                #### ccccccccccccc
+                    if (track_id==required_id2   ):
+
+                        print("The selected vehicle  is moving")
+                    
+                        plotted_past_line = plt.Polygon(center_points[0:current_index + 1:2], closed=False, color=color_selected_id2 ,
                                                     fill=False, **self.trajectory_style)
                    
 
@@ -333,12 +370,13 @@ class TrackVisualizer(object):
                             self.ax.add_patch(plotted_centroids_future)
                             plot_handles.append(plotted_centroids_future)
 
+
             # Compose annotation
             annotation_text = ''
             if self.config["annotate_track_id"]:
                 # Plot the text annotation
                 annotation_text = "ID{}".format(track_id)
-                if (track_id==required_id1):
+                if (track_id==required_id):
                     annotation_text = "ID{}".format(track_id)
             if self.config["annotate_class"]:
                 if annotation_text != '':
@@ -362,17 +400,60 @@ class TrackVisualizer(object):
                 annotation_text += "Age%d/%d" % (current_index + 1, age)
 
             if annotation_text:
-                if (track_id==required_id1   ):
+                if (track_id==required_id   ):
 
 
                     text_patch = self.ax.text(center_point[0], center_point[1]-2.5, annotation_text,
-                                            bbox={"fc": color_selected_id1, **self.text_box_style}, animated=animate,
+                                            bbox={"fc": color_selected_id, **self.text_box_style}, animated=animate,
                                             **self.text_style)
                 else:
                     text_patch = self.ax.text(center_point[0], center_point[1]-2.5, annotation_text,
                                           bbox={"fc": color, **self.text_box_style}, animated=animate,
                                           **self.text_style)
+                # Make text clickable to open track info window
+                text_patch.set_picker(True)
+                text_patch.track_id = track["trackId"]
 
+                plot_handles.append(text_patch)
+            # Compose annotation
+            annotation_text = ''
+            if self.config["annotate_track_id"]:
+                # Plot the text annotation
+                annotation_text = "ID{}".format(track_id)
+                if (track_id==required_id2):
+                    annotation_text = "ID{}".format(track_id)
+            if self.config["annotate_class"]:
+                if annotation_text != '':
+                    annotation_text += '|'
+                annotation_text += "{}".format(object_class[0])
+            if self.config["annotate_speed"]:
+                if annotation_text != '':
+                    annotation_text += '|'
+                current_velocity = np.sqrt(
+                    track["xVelocity"][current_index] ** 2 + track["yVelocity"][current_index] ** 2) * 3.6
+                annotation_text += "{:.2f}km/h".format(current_velocity)
+            if self.config["annotate_orientation"]:
+                if annotation_text != '':
+                    annotation_text += '|'
+                current_rotation = track["heading"][current_index]
+                annotation_text += "Deg%.2f" % current_rotation
+            if self.config["annotate_age"]:
+                if annotation_text != '':
+                    annotation_text += '|'
+                age = track_meta["numFrames"]
+                annotation_text += "Age%d/%d" % (current_index + 1, age)
+
+            if annotation_text:
+                if (track_id==required_id2   ):
+
+
+                    text_patch = self.ax.text(center_point[0], center_point[1]-2.5, annotation_text,
+                                            bbox={"fc": color_selected_id2, **self.text_box_style}, animated=animate,
+                                            **self.text_style)
+                else:
+                    text_patch = self.ax.text(center_point[0], center_point[1]-2.5, annotation_text,
+                                          bbox={"fc": color, **self.text_box_style}, animated=animate,
+                                          **self.text_style)
                 # Make text clickable to open track info window
                 text_patch.set_picker(True)
                 text_patch.track_id = track["trackId"]
