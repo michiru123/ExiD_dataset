@@ -350,10 +350,10 @@ class TrackVisualizer(object):
                 self.ax.add_patch(centroid)
                 plot_handles.append(centroid)
                 
-                if center_points.shape[0] > 0:
+            if center_points.shape[0] > 0:
 
-                    #### ccccccccccccc
-                    if (track_id==required_id   ):
+               #### ccccccccccccc
+               if (track_id==required_id   ):
 
                         print("The selected vehicle  is moving")
                     
@@ -376,8 +376,8 @@ class TrackVisualizer(object):
                             self.ax.add_patch(plotted_centroids_future)
                             plot_handles.append(plotted_centroids_future)
                             
-                  #### ccccccccccccc
-                    if (track_id==required_id3   ):
+                 #### ccccccccccccc
+                 if (track_id==required_id3   ):
 
                         print("The selected vehicle  is moving")
                     
@@ -401,7 +401,7 @@ class TrackVisualizer(object):
                             plot_handles.append(plotted_centroids_future)          
 
                     #### ccccccccccccc
-                    if (track_id==required_id1   ):
+                   if (track_id==required_id1   ):
 
 #                         print("The selected vehicle  is moving")
                     
@@ -449,7 +449,7 @@ class TrackVisualizer(object):
                             plot_handles.append(plotted_centroids_future)
 
 
-            #Compose annotation
+                #Compose annotation
             annotation_text = ''
             if self.config["annotate_track_id"]:
                 # Plot the text annotation
